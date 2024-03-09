@@ -50,7 +50,7 @@ function App() {
   return (
     <>
       <Header />
-      <main className="mx-4">
+      <main>
         <div className="grid md:grid-cols-2 gap-4 mt-4">
           <NoteForm addNote={addNote} />
           <NoteContainer
