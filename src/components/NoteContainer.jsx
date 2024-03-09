@@ -1,13 +1,37 @@
-import React, { useState } from "react";
-import { TiDelete } from "react-icons/ti";
+import React, { useState, useEffect } from "react";
+import {
+  FaArrowAltCircleDown,
+  FaArrowAltCircleUp,
+  FaRegTimesCircle,
+} from "react-icons/fa";
 import Modal from "./Modal";
 
-function NoteContainer({ title, bgColor, notes, category, moveNote, onDelete }) {
+function NoteContainer({
+  title,
+  bgColor,
+  notes,
+  category,
+  moveNote,
+  onDelete,
+}) {
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState({
     title: "",
     description: "",
   });
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleDragStart = (e, index) => {
     e.dataTransfer.setData("index", index);
@@ -36,13 +60,6 @@ function NoteContainer({ title, bgColor, notes, category, moveNote, onDelete }) 
     setShowModal(true);
   };
 
-
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
-
   return (
     <div
       className={`p-4 rounded-md ${bgColor}`}
@@ -52,39 +69,76 @@ function NoteContainer({ title, bgColor, notes, category, moveNote, onDelete }) 
       <h1 className={`text-center font-bold text-lg mb-4 uppercase`}>
         {title}
       </h1>
+
       <div className="px-3">
         {notes.map((note, index) => (
           <div
             key={index}
-            draggable={category !== "rapida"} // Disable dragging for "Notas Rápida"
+            draggable={!isMobileView} // Disable dragging for mobile view
             onDragStart={(e) => handleDragStart(e, index)}
             className="flex items-center mb-2"
           >
+            {isMobileView && (
+              <div>
+                {category === "tarea" && (
+                  <button
+                    className="bg-black text-white rounded-full flex items-center justify-center w-auto mb-1"
+                    onClick={() => moveNote(index, category, "porHacer")}
+                  >
+                    <FaArrowAltCircleDown />
+                  </button>
+                )}
+
+                {category === "porHacer" && (
+                  <>
+                    <button
+                      className="bg-black text-white rounded-full  flex items-center justify-center w-auto mb-1"
+                      onClick={() => moveNote(index, category, "tarea")}
+                    >
+                      <FaArrowAltCircleUp />
+                    </button>
+                    <button
+                      className="bg-black text-white rounded-full flex items-center justify-center "
+                      onClick={() => moveNote(index, category, "finalizado")}
+                    >
+                      <FaArrowAltCircleDown />
+                    </button>
+                  </>
+                )}
+
+                {category === "finalizado" && (
+                  <button
+                    className="bg-black text-white rounded-full flex items-center justify-center "
+                    onClick={() => moveNote(index, category, "porHacer")}
+                  >
+                    <FaArrowAltCircleUp />
+                  </button>
+                )}
+              </div>
+            )}
+
             <div
-              className="mr-2 p-2 rounded-md bg-white cursor-pointer w-full"
+              className="mx-2 p-2 rounded-md bg-white cursor-pointer w-full"
               onClick={() => handleNoteClick(note.title, note.description)}
             >
               <h3 className="uppercase flex-1">{note.title}</h3>
             </div>
-             
-              <button
-                className="bg-red-500 text-white rounded-full size-5 flex items-center justify-center w-auto"
-                onClick={() => handleDelete(index)}
-              >
-                <TiDelete />
-              </button>
-            
+
+            <button
+              className="bg-red-500 text-white rounded-full  flex items-center justify-center"
+              onClick={() => handleDelete(index)}
+            >
+              <FaRegTimesCircle />
+            </button>
           </div>
         ))}
       </div>
-      
-
 
       {showModal && (
         <Modal
           title={modalContent.title}
           description={modalContent.description}
-          onClose={handleCloseModal}
+          onClose={() => setShowModal(false)}
         />
       )}
     </div>
