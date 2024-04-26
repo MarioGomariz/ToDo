@@ -13,7 +13,7 @@ function Header() {
       <p className="opacity-25 text-end">
         Powered by <span className="mr-2">
         <a
-          href="https://www.instagram.com/mariogomariz01/"
+          href="https://mariogomariz.vercel.app/"
           target="_blank"
           rel="noopener noreferrer"
         >
