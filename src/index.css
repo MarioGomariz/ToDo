@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Colores primarios - Tron: Ares Red */
@@ -108,9 +108,8 @@ body {
 }
 
 .kanban-column {
-  flex: 0 0 260px;
+  flex: 1 1 260px;
   min-width: 260px;
-  max-width: 260px;
   display: flex;
   flex-direction: column;
   background: var(--background-secondary);
