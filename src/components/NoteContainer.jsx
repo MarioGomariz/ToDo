@@ -4,20 +4,23 @@ import {
   FaArrowAltCircleUp,
   FaRegTimesCircle,
 } from "react-icons/fa";
+import { RiInboxLine } from "react-icons/ri";
 import Modal from "./Modal";
 
 function NoteContainer({
   title,
-  bgColor,
-  notes,
   category,
+  notes,
   moveNote,
   onDelete,
+  onEdit,
+  statusColor,
 }) {
   const [showModal, setShowModal] = useState(false);
-  const [modalContent, setModalContent] = useState({
+  const [modalData, setModalData] = useState({
     title: "",
     description: "",
+    index: null,
   });
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
@@ -27,7 +30,6 @@ function NoteContainer({
     };
 
     window.addEventListener("resize", handleResize);
-
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -55,90 +57,158 @@ function NoteContainer({
     onDelete(index, category);
   };
 
-  const handleNoteClick = (title, description) => {
-    setModalContent({ title, description });
+  const handleNoteClick = (note, index) => {
+    setModalData({
+      title: note.title,
+      description: note.description,
+      index: index,
+    });
     setShowModal(true);
   };
 
   return (
     <div
-      className={`p-4 rounded-md ${bgColor}`}
+      className="kanban-column slide-in"
       onDragOver={handleDragOver}
       onDrop={(e) => handleDrop(e, category)}
     >
-      <h1 className={`text-center font-bold text-lg mb-4 uppercase`}>
-        {title}
-      </h1>
+      {/* Column Header */}
+      <div className="kanban-column-header">
+        <div className="kanban-column-title">
+          {statusColor && <span className={`status-dot ${statusColor}`}></span>}
+          <h3>{title}</h3>
+        </div>
 
-      <div className="px-3">
-        {notes.map((note, index) => (
-          <div
-            key={index}
-            draggable={!isMobileView} // Disable dragging for mobile view
-            onDragStart={(e) => handleDragStart(e, index)}
-            className="flex items-center mb-2"
-          >
-            {isMobileView && (
-              <div>
-                {category === "tarea" && (
-                  <button
-                    className="bg-black text-white rounded-full flex items-center justify-center w-auto mb-1"
-                    onClick={() => moveNote(index, category, "porHacer")}
+        {notes.length > 0 && (
+          <span className="trello-badge">{notes.length}</span>
+        )}
+      </div>
+
+      {/* Column Body */}
+      <div className="kanban-column-body">
+        {notes.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <RiInboxLine />
+            </div>
+            <p className="empty-state-text">
+              {category === 'rapida' ? 'Sin notas' : 'Sin tareas'}
+            </p>
+          </div>
+        ) : (
+          notes.map((note, index) => (
+            <div
+              key={index}
+              draggable={!isMobileView}
+              onDragStart={(e) => handleDragStart(e, index)}
+              className="slide-in"
+            >
+              <div className="trello-card">
+                <div className="trello-card-header">
+                  <h3
+                    className="trello-card-title"
+                    onClick={() => handleNoteClick(note, index)}
                   >
-                    <FaArrowAltCircleDown />
+                    {note.title}
+                  </h3>
+
+                  <button
+                    className="trello-icon-button delete"
+                    onClick={() => handleDelete(index)}
+                    aria-label="Eliminar"
+                  >
+                    <FaRegTimesCircle size={16} />
                   </button>
+                </div>
+
+                {note.description && (
+                  <p
+                    className="trello-card-description"
+                    onClick={() => handleNoteClick(note, index)}
+                  >
+                    {note.description}
+                  </p>
                 )}
 
-                {category === "porHacer" && (
-                  <>
-                    <button
-                      className="bg-black text-white rounded-full  flex items-center justify-center w-auto mb-1"
-                      onClick={() => moveNote(index, category, "tarea")}
-                    >
-                      <FaArrowAltCircleUp />
-                    </button>
-                    <button
-                      className="bg-black text-white rounded-full flex items-center justify-center "
-                      onClick={() => moveNote(index, category, "finalizado")}
-                    >
-                      <FaArrowAltCircleDown />
-                    </button>
-                  </>
-                )}
+                {/* Mobile navigation buttons */}
+                {isMobileView && moveNote && (
+                  <div style={{
+                    display: 'flex',
+                    gap: '0.5rem',
+                    marginTop: '0.75rem',
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid var(--border-color)'
+                  }}>
+                    {category === "tarea" && (
+                      <button
+                        className="trello-button-secondary"
+                        onClick={() => moveNote(index, category, "porHacer")}
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '0.375rem 0.75rem',
+                          flex: 1
+                        }}
+                      >
+                        → En Progreso
+                      </button>
+                    )}
 
-                {category === "finalizado" && (
-                  <button
-                    className="bg-black text-white rounded-full flex items-center justify-center "
-                    onClick={() => moveNote(index, category, "porHacer")}
-                  >
-                    <FaArrowAltCircleUp />
-                  </button>
+                    {category === "porHacer" && (
+                      <>
+                        <button
+                          className="trello-button-secondary"
+                          onClick={() => moveNote(index, category, "tarea")}
+                          style={{
+                            fontSize: '0.75rem',
+                            padding: '0.375rem 0.75rem',
+                            flex: 1
+                          }}
+                        >
+                          ← Por Hacer
+                        </button>
+                        <button
+                          className="trello-button-secondary"
+                          onClick={() => moveNote(index, category, "finalizado")}
+                          style={{
+                            fontSize: '0.75rem',
+                            padding: '0.375rem 0.75rem',
+                            flex: 1
+                          }}
+                        >
+                          → Completado
+                        </button>
+                      </>
+                    )}
+
+                    {category === "finalizado" && (
+                      <button
+                        className="trello-button-secondary"
+                        onClick={() => moveNote(index, category, "porHacer")}
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '0.375rem 0.75rem',
+                          flex: 1
+                        }}
+                      >
+                        ← En Progreso
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-
-            <div
-              className="mx-2 p-2 rounded-md bg-white cursor-pointer w-full"
-              onClick={() => handleNoteClick(note.title, note.description)}
-            >
-              <h3 className="uppercase flex-1">{note.title}</h3>
             </div>
-
-            <button
-              className="bg-red-500 text-white rounded-full  flex items-center justify-center"
-              onClick={() => handleDelete(index)}
-            >
-              <FaRegTimesCircle />
-            </button>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {showModal && (
         <Modal
-          title={modalContent.title}
-          description={modalContent.description}
+          title={modalData.title}
+          description={modalData.description}
+          index={modalData.index}
+          category={category}
           onClose={() => setShowModal(false)}
+          onSave={onEdit}
         />
       )}
     </div>

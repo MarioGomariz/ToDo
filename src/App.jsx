@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import NoteForm from "./components/NoteForm";
 import NoteContainer from "./components/NoteContainer";
-import Header from "./components/Header";
+import { IoAddSharp } from "react-icons/io5";
 
 function App() {
   const [notes, setNotes] = useState({
     rapida: [],
     tarea: [],
     porHacer: [],
-    realizando: [],
     finalizado: [],
   });
+
+  const [showFormModal, setShowFormModal] = useState(false);
 
   useEffect(() => {
     const storedNotes = localStorage.getItem("notes");
@@ -24,6 +25,7 @@ function App() {
     const updatedNotes = { ...notes, [category]: [...notes[category], note] };
     setNotes(updatedNotes);
     localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    setShowFormModal(false);
   };
 
   const moveNote = (index, currentCategory, newCategory) => {
@@ -47,48 +49,107 @@ function App() {
     );
   };
 
+  const editNote = (index, category, updatedNote) => {
+    const updatedNotes = [...notes[category]];
+    updatedNotes[index] = { ...updatedNotes[index], ...updatedNote };
+    setNotes({ ...notes, [category]: updatedNotes });
+    localStorage.setItem(
+      "notes",
+      JSON.stringify({ ...notes, [category]: updatedNotes })
+    );
+  };
+
+  const totalNotes = Object.values(notes).reduce((acc, arr) => acc + arr.length, 0);
+
   return (
-    <>
-      <Header />
-      <main>
-        <div className="grid md:grid-cols-2 gap-4 mt-4">
-          <NoteForm addNote={addNote} />
-          <NoteContainer
-            title="Notas Rápida"
-            bgColor="bg-green-700"
-            category="rapida"
-            notes={notes.rapida}
-            onDelete={deleteNote}
-          />
+    <div className="kanban-wrapper">
+      {/* Header */}
+      <header className="kanban-header">
+        <div className="kanban-header-left">
+          <div>
+            <h1 className="kanban-header-title">Mi Tablero</h1>
+            <p className="kanban-header-subtitle">
+              {totalNotes} {totalNotes === 1 ? 'tarea' : 'tareas'} en total
+            </p>
+          </div>
         </div>
-        <div className="grid md:grid-cols-3 gap-4 mt-4">
-          <NoteContainer
-            title="Iniciando"
-            bgColor="bg-green-600"
-            category="tarea"
-            notes={notes.tarea}
-            moveNote={moveNote}
-            onDelete={deleteNote}
-          />
-          <NoteContainer
-            title="Realizando"
-            bgColor="bg-yellow-400"
-            category="porHacer"
-            notes={notes.porHacer}
-            moveNote={moveNote}
-            onDelete={deleteNote}
-          />
-          <NoteContainer
-            title="Finalizado"
-            bgColor="bg-red-500"
-            category="finalizado" // Corrected category
-            notes={notes.finalizado} // Corrected notes object key
-            moveNote={moveNote}
-            onDelete={deleteNote}
-          />
-        </div>
-      </main>
-    </>
+
+        <a
+          href="https://mariogomariz.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: 'var(--primary)',
+            textDecoration: 'none',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            transition: 'color 0.2s ease'
+          }}
+          onMouseEnter={(e) => e.target.style.color = 'var(--primary-hover)'}
+          onMouseLeave={(e) => e.target.style.color = 'var(--primary)'}
+        >
+          @MarioGomariz
+        </a>
+      </header>
+
+      {/* Kanban Board */}
+      <div className="kanban-board">
+        <NoteContainer
+          title="📝 Notas Rápidas"
+          category="rapida"
+          notes={notes.rapida}
+          onDelete={deleteNote}
+          onEdit={editNote}
+        />
+
+        <NoteContainer
+          title="Por Hacer"
+          category="tarea"
+          notes={notes.tarea}
+          moveNote={moveNote}
+          onDelete={deleteNote}
+          onEdit={editNote}
+          statusColor="green"
+        />
+
+        <NoteContainer
+          title="En Progreso"
+          category="porHacer"
+          notes={notes.porHacer}
+          moveNote={moveNote}
+          onDelete={deleteNote}
+          onEdit={editNote}
+          statusColor="yellow"
+        />
+
+        <NoteContainer
+          title="Completado"
+          category="finalizado"
+          notes={notes.finalizado}
+          moveNote={moveNote}
+          onDelete={deleteNote}
+          onEdit={editNote}
+          statusColor="red"
+        />
+      </div>
+
+      {/* Floating Add Button */}
+      <button
+        className="floating-button scale-in"
+        onClick={() => setShowFormModal(true)}
+        aria-label="Agregar nueva tarea"
+      >
+        <IoAddSharp />
+      </button>
+
+      {/* Form Modal */}
+      {showFormModal && (
+        <NoteForm
+          addNote={addNote}
+          onClose={() => setShowFormModal(false)}
+        />
+      )}
+    </div>
   );
 }
 

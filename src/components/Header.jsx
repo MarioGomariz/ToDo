@@ -1,25 +1,45 @@
 function Header() {
   return (
-    <header className="p-4 bg-slate-700 mt-4 rounded-md text-white ">
-      <h1 className=" font-bold uppercase text-2xl text-center">
-        TAREAS Y NOTAS
-      </h1>
-      <p className="text-center">
-        Agrega notas rapidas o tareas que tiene que realizar.
-      </p>
-      <p className="text-start opacity-50">
-        *desde PC puedes arrastrar las tareas a otra categoria.
-      </p>
-      <p className="opacity-25 text-end">
-        Powered by <span className="mr-2">
+    <header className="trello-header fade-in" style={{ marginBottom: '2rem' }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div>
+          <h1 style={{
+            fontSize: '1.75rem',
+            fontWeight: '700',
+            marginBottom: '0.5rem',
+            color: 'var(--text-primary)'
+          }}>
+            Tareas y Notas
+          </h1>
+          <p style={{
+            fontSize: '0.9375rem',
+            color: 'var(--text-secondary)'
+          }}>
+            Organiza tus tareas y notas de forma simple
+          </p>
+        </div>
+
         <a
-          href="https://mariogomariz.vercel.app/"
+          href="https://mario-gomariz-portfolio.vercel.app"
           target="_blank"
           rel="noopener noreferrer"
+          style={{
+            color: 'var(--primary)',
+            textDecoration: 'none',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            transition: 'color 0.2s ease'
+          }}
+          onMouseEnter={(e) => e.target.style.color = 'var(--primary-hover)'}
+          onMouseLeave={(e) => e.target.style.color = 'var(--primary)'}
         >
-        @MarioGomariz
-        </a></span>
-      </p>
+          @MarioGomariz
+        </a>
+      </div>
     </header>
   );
 }
