@@ -5,7 +5,9 @@ import {
   FaRegTimesCircle,
 } from "react-icons/fa";
 import { RiInboxLine } from "react-icons/ri";
+import { IoShareSocialSharp } from "react-icons/io5";
 import Modal from "./Modal";
+import { shareData } from "../utils/shareUtils";
 
 function NoteContainer({
   title,
@@ -23,6 +25,8 @@ function NoteContainer({
     index: null,
   });
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     const handleResize = () => {
@@ -66,6 +70,32 @@ function NoteContainer({
     setShowModal(true);
   };
 
+  const handleShareNote = async (note, e) => {
+    e.stopPropagation();
+    const result = await shareData(note, 'note', note.title);
+    if (result.success) {
+      showToastMessage(result.message);
+    }
+  };
+
+  const handleShareContainer = async () => {
+    const containerData = {
+      containerName: title,
+      notes: notes,
+      category: category
+    };
+    const result = await shareData(containerData, 'container', `Compartir ${title}`);
+    if (result.success) {
+      showToastMessage(result.message);
+    }
+  };
+
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   return (
     <div
       className="kanban-column slide-in"
@@ -79,9 +109,21 @@ function NoteContainer({
           <h3>{title}</h3>
         </div>
 
-        {notes.length > 0 && (
-          <span className="trello-badge">{notes.length}</span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {notes.length > 0 && (
+            <>
+              <span className="trello-badge">{notes.length}</span>
+              <button
+                className="share-container-button"
+                onClick={handleShareContainer}
+                aria-label="Compartir contenedor"
+              >
+                <IoShareSocialSharp size={14} />
+                Compartir
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Column Body */}
@@ -112,13 +154,22 @@ function NoteContainer({
                     {note.title}
                   </h3>
 
-                  <button
-                    className="trello-icon-button delete"
-                    onClick={() => handleDelete(index)}
-                    aria-label="Eliminar"
-                  >
-                    <FaRegTimesCircle size={16} />
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.25rem' }}>
+                    <button
+                      className="share-button"
+                      onClick={(e) => handleShareNote(note, e)}
+                      aria-label="Compartir nota"
+                    >
+                      <IoShareSocialSharp size={16} />
+                    </button>
+                    <button
+                      className="trello-icon-button delete"
+                      onClick={() => handleDelete(index)}
+                      aria-label="Eliminar"
+                    >
+                      <FaRegTimesCircle size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {note.description && (
@@ -210,6 +261,16 @@ function NoteContainer({
           onClose={() => setShowModal(false)}
           onSave={onEdit}
         />
+      )}
+
+      {/* Toast notification */}
+      {showToast && (
+        <div className="toast success fade-in">
+          <div className="toast-content">
+            <IoShareSocialSharp size={18} />
+            {toastMessage}
+          </div>
+        </div>
       )}
     </div>
   );

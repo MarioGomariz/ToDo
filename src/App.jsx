@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import NoteForm from "./components/NoteForm";
 import NoteContainer from "./components/NoteContainer";
 import Header from "./components/Header";
+import ImportModal from "./components/ImportModal";
 import { IoAddSharp } from "react-icons/io5";
+import { decodeShareData, validateImportData } from "./utils/shareUtils";
 
 function App() {
   const [notes, setNotes] = useState({
@@ -13,11 +15,42 @@ function App() {
   });
 
   const [showFormModal, setShowFormModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importData, setImportData] = useState(null);
 
+  // Load notes from localStorage
   useEffect(() => {
     const storedNotes = localStorage.getItem("notes");
     if (storedNotes) {
       setNotes(JSON.parse(storedNotes));
+    }
+  }, []);
+
+  // Check for import parameter in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const importParam = urlParams.get('import');
+
+    if (importParam) {
+      const shareData = decodeShareData(importParam);
+
+      if (shareData) {
+        const validation = validateImportData(shareData);
+
+        if (validation.valid) {
+          setImportData(shareData);
+          setShowImportModal(true);
+        } else {
+          console.error('Invalid import data:', validation.error);
+          alert(`Error al importar: ${validation.error}`);
+        }
+      } else {
+        console.error('Failed to decode import data');
+        alert('Error al importar: Datos inválidos');
+      }
+
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -58,6 +91,26 @@ function App() {
       "notes",
       JSON.stringify({ ...notes, [category]: updatedNotes })
     );
+  };
+
+  const handleImport = (shareData) => {
+    const { type, data } = shareData;
+
+    if (type === 'note') {
+      // Import single note
+      const category = data.category || 'rapida';
+      const updatedNotes = { ...notes, [category]: [...notes[category], data] };
+      setNotes(updatedNotes);
+      localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    } else if (type === 'container') {
+      // Import container
+      const category = data.category || 'tarea';
+      const updatedNotes = { ...notes, [category]: [...notes[category], ...data.notes] };
+      setNotes(updatedNotes);
+      localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    }
+
+    setShowImportModal(false);
   };
 
   const totalNotes = Object.values(notes).reduce((acc, arr) => acc + arr.length, 0);
@@ -122,6 +175,15 @@ function App() {
         <NoteForm
           addNote={addNote}
           onClose={() => setShowFormModal(false)}
+        />
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && importData && (
+        <ImportModal
+          shareData={importData}
+          onImport={handleImport}
+          onClose={() => setShowImportModal(false)}
         />
       )}
     </div>
