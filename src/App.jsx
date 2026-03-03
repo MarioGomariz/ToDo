@@ -116,7 +116,11 @@ function App() {
   const totalNotes = Object.values(notes).reduce((acc, arr) => acc + arr.length, 0);
 
   return (
-    <div className="kanban-wrapper">
+    <div className="kanban-wrapper relative">
+      {/* Background Gradients - Tron Red Style */}
+      <div className="absolute pointer-events-none top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary-dark/20 blur-[120px]" />
+      <div className="absolute pointer-events-none bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[130px]" />
+
       {/* Header */}
       <Header totalNotes={totalNotes} />
 
